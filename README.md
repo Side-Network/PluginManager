@@ -1,4 +1,4 @@
-# SpigotPluginManager
+# PluginManager
 A fresh and easy to use plugin manager for spigot.\
 PluginManager (Yes, a really creative name) aims to be the perfect replacement for every other plugin manager you ever had. It has many already seen featured and also new ones like an easy to use gui.
 

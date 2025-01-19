@@ -22,9 +22,4 @@ dependencies {
 
 java {
     withSourcesJar()
-    withJavadocJar()
-}
-
-javadoc {
-    failOnError = false
 }

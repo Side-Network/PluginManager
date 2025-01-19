@@ -5,6 +5,6 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'SpigotPluginManager'
+rootProject.name = 'PluginManager'
 
 include(":PaperSupport")

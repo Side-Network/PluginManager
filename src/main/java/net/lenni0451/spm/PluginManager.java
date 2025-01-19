@@ -73,7 +73,6 @@ public class PluginManager extends JavaPlugin {
         this.getCommand("pluginmanager").setAliases(Collections.singletonList("pm"));
         this.getCommand("pluginmanager").setTabCompleter(new PluginManager_TabComplete());
 
-        if (this.getConfig().getBoolean("CheckForUpdates")) this.checkUpdates();
         if (I18n.wasUpdated()) {
             Bukkit.getScheduler().runTask(PluginManager.getInstance(), () -> {
                 for (String translationLine : I18n.mt("pm.updater.missingTranslations")) {
@@ -81,72 +80,6 @@ public class PluginManager extends JavaPlugin {
                 }
             });
         }
-    }
-
-    private void checkUpdates() {
-        if (this.getDescription().getVersion().endsWith("-SNAPSHOT")) return; //Snapshots are not updatable
-
-        final String downloadURL = "https://github.com/Lenni0451/SpigotPluginManager/releases/latest/download/PluginManager.jar";
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            try {
-                final String newestVersion = DownloadUtils.getNewestVersion();
-                if (!newestVersion.equals(this.getDescription().getVersion())) {
-                    if (!newestVersion.startsWith("2")) {
-                        for (String line : I18n.mt("pm.updater.newMajor", this.getDescription().getVersion(), newestVersion)) {
-                            Logger.sendPrefixMessage(Bukkit.getConsoleSender(), line);
-                        }
-                    } else {
-                        Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.found", this.getDescription().getVersion(), newestVersion));
-                        if (this.getConfig().getBoolean("AutoUpdate")) {
-                            try {
-                                { //Load all classes needed for the PluginUtils here because as soon as we overwrite the plugin jar we are no longer able to load classes
-                                    Class.forName(ThreadUtils.class.getName());
-                                    Class.forName(ReflectionUtils.class.getName());
-                                    Class.forName(FileOutputStream.class.getName());
-                                    try {
-                                        Class.forName(PluginUtils.PAPER_SUPPORT);
-                                        Class.forName(PluginUtils.PAPER_PLUGIN_PROVIDER_STORAGE);
-                                    } catch (Throwable ignored) {
-                                    }
-                                }
-
-                                final File pluginFile = this.getFile();
-                                final byte[] newData = DownloadUtils.download(downloadURL);
-                                Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.downloadSuccess"));
-                                Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.checkChangelog", "https://github.com/Lenni0451/SpigotPluginManager/releases/tag/" + newestVersion));
-                                Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.selfReload"));
-                                Bukkit.getScheduler().runTaskLater(this, () -> {
-                                    try {
-                                        this.pluginUtils.unloadPlugin(this);
-                                        //Here the ClassLoader is already closed. There is no going back now
-                                        {
-                                            FileOutputStream fos = new FileOutputStream(pluginFile);
-                                            fos.write(newData);
-                                            fos.close();
-                                        }
-                                        this.pluginUtils.loadPlugin(this);
-                                        Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.reloadSuccess"));
-                                    } catch (Throwable e) {
-                                        e.printStackTrace();
-                                    }
-                                }, 1);
-                            } catch (Throwable e) {
-                                e.printStackTrace();
-                                Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.downloadFail"));
-                                Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.downloadHere", downloadURL));
-                            }
-                        } else {
-                            Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.downloadHere", downloadURL));
-                        }
-                    }
-                } else {
-                    Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.latestVersion"));
-                }
-            } catch (Throwable e) {
-                Logger.sendPrefixMessage(Bukkit.getConsoleSender(), I18n.t("pm.updater.error"));
-                e.printStackTrace();
-            }
-        });
     }
 
 }
